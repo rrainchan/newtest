@@ -1,0 +1,126 @@
+from tkinter import *
+import json
+import os
+
+# File to store the state
+STATE_FILE = 'checkbox_state.json'
+
+# Function to load checkbox states and counter from the file
+def load_state():
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, 'r') as f:
+            data = json.load(f)
+            for number, var in enumerate(checkbox_vars):
+                var.set(data['checkbox'][number])
+            return data['counter']
+    return 0
+
+def save_state():
+    data = {
+        'checkbox': [var.get() for var in checkbox_vars],
+        'counter': counter
+        }
+    with open(STATE_FILE, 'w') as f:
+        json.dump(data,f)
+
+window = Tk()
+window.title("Spring in Fialta")
+window.geometry("531x588")
+
+window.columnconfigure(0, weight=1)  # Adjust weight as necessary for other columns
+window.columnconfigure(1, weight=0)  # Column for buttons/labels, no weight
+
+number_of_happiness = 0
+def show_progress():
+    number_of_happiness = sum(var.get() for var in checkbox_vars)
+    happiness_number.config(text=f'You have {number_of_happiness} types of Happiness')
+    
+all_happiness= ["Convert to Adventure",
+ "Convert to Reward",
+ "Convert to Combat",
+ "Convert to Occurence",
+ "Convert to Occurence: Swarm",
+ "Convert to Elite Combat",
+ "Convert to Combat: Swarm",
+ "Convert to Blank Domain",
+ "Enhance Curio Trotter",
+ "Enhance Blessing Trotter",
+ "Enhance Beacon",
+ "Enhance Mutation",
+ "Get Combat Rewards Immediately",
+ "Swap Postion to Mirrored Tile",
+ "Swap Position Random",
+ "Swap Position to Adjacent",
+ "Copy to Adjacent And apply recollection"]
+
+checkbox_vars = []
+
+for happiness_type, happiness in enumerate(all_happiness):
+    var = IntVar()
+    checkbox_vars.append(var)
+    checkbox = Checkbutton(window,
+                       text= happiness,
+                       variable= var,
+                       onvalue=1,
+                       offvalue=0,
+                       command=show_progress,
+                       font=('Arial',13),
+                       foreground='black',
+                       activeforeground="black",
+                       padx=2,
+                       pady=3
+                       )                      
+    checkbox.grid(row=happiness_type, column=0, sticky="w")
+
+happiness_number = Label(window,
+                     text= number_of_happiness,
+                     font=('arial',15,'bold'),
+                     compound='right')
+happiness_number.grid(row=1, sticky='ne')
+
+counter = load_state()
+def reset():
+    for var in checkbox_vars:
+        var.set(0)
+    global counter
+    counter += 1
+    reset_number.config(text=counter,
+                        font=18)
+    
+Reset = Button(window,
+               text="Total Resets",
+               font=17,
+               width=12,
+               height=1)
+Reset.config(command=reset)
+Reset.grid(row=5, sticky='e')
+
+reset_number = Label(window,
+                     text=counter,
+                     width=11)
+reset_number.grid(row=6, sticky='e')
+
+def counter_reset():
+    global counter
+    counter = 0
+    for var in checkbox_vars:
+        var.set(0)
+    reset_number.config(text=counter,
+                        font=18)
+    
+Counter_Reset = Button(window,
+               text="Counter Reset",
+               font=17,
+               width=12,
+               height=1)
+Counter_Reset.config(command=counter_reset)
+Counter_Reset.grid(row=11, sticky='e')
+
+# Save state when the window is closed
+def on_closing():
+    save_state()
+    window.destroy()
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+window.mainloop()
